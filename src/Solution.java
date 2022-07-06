@@ -19,17 +19,17 @@ public class Solution {
      */
 //Stepik code: start
     public static class UntrustworthyMailWorker implements MailService {
-        private static MailService[] mailWorkers;
+        private MailService[] mailWorkers;
         private static RealMailService realMailService = new RealMailService();
         public RealMailService getRealMailService() {
-            return realMailService;
+            return this.realMailService;
         }
-        public UntrustworthyMailWorker (MailService[] mailWorkers){
+        public UntrustworthyMailWorker (MailService[] mailWorkers) {
             this.mailWorkers = mailWorkers;
         }
         @Override
         public Sendable processMail(Sendable mail) {
-            for (int i = 0; i < mailWorkers.length; i++){
+            for (int i = 0; i < mailWorkers.length; i++) {
                 mail = mailWorkers[i].processMail(mail);
             }
             return realMailService.processMail(mail);
@@ -37,9 +37,9 @@ public class Solution {
     }
 
     public static class Spy implements MailService {
-        private final Logger LOGGER;
+        private final Logger logger;
         public Spy(final Logger logger) {
-            this.LOGGER = logger;
+            this.logger = logger;
         }
         @Override
         public Sendable processMail(Sendable mail) {
@@ -48,9 +48,9 @@ public class Solution {
                 String to = mail.getTo();
                 if (from.equals(AUSTIN_POWERS)  || to.equals(AUSTIN_POWERS)) {
                     String message = ((MailMessage) mail).getMessage();
-                    LOGGER.warning("Detected target mail correspondence: from " + from + " to " + to + " \"" + message + "\"");
+                    logger.warning("Detected target mail correspondence: from " + from + " to " + to + " \"" + message + "\"");
                 } else {
-                    LOGGER.info("Usual correspondence: from " + from + " to " + to + "");
+                    logger.info("Usual correspondence: from " + from + " to " + to + "");
                 }
             }
             return mail;
@@ -58,13 +58,12 @@ public class Solution {
     }
 
     public static class Thief implements MailService {
-        private static int minPrice;
+        private int minPrice;
         private int stolenValue  = 0;
         public int getStolenValue() {
             return stolenValue;
         }
         public Thief(int minPrice) {
-
             this.minPrice = minPrice;
         }
         @Override
@@ -94,7 +93,7 @@ public class Solution {
             if (mail instanceof MailPackage) {
                 Package pack = ((MailPackage) mail).getContent();
                 String content = pack.getContent();
-                if (content.indexOf("stones instead of ") == 0) {
+                if (content.contains("stones")) {
                     throw new StolenPackageException();
                 }
                 if (content.contains(BANNED_SUBSTANCE) || content.contains(WEAPONS))  {
@@ -124,28 +123,17 @@ public class Solution {
 
         Inspector inspector = new Inspector();
         Spy spy = new Spy(logger);
-        Thief thief = new Thief(1000);
+        Thief thief = new Thief(10000);
         MailService variousWorkers[] = new MailService[]{spy, thief, inspector};
         UntrustworthyMailWorker worker = new UntrustworthyMailWorker(variousWorkers);
 
         AbstractSendable correspondence[] = {
-                new MailMessage("Отправитель","Austin Powers", "Сообщение"),
-                new MailMessage("Отправитель","Получатель", "Сообщение"),
-                new MailPackage("Отправитель посылки", "Получатель посылки", new Package("Посылка", 32)),
-                new MailPackage("Отправитель посылки", "Получатель посылки", new Package("Дорогая посылка", 2000)),
-               /* new MailMessage("Oxxxymiron", "Гнойный", "Я здесь чисто по фану, поглумиться над слабым\n" +
-                        "Ты же вылез из мамы под мой дисс на Бабана...."),
-                new MailMessage("Гнойный", "Oxxxymiron", "....Что? Так болел за Россию, что на нервах терял ганглии.\n" +
-                        "Но когда тут проходили митинги, где ты сидел? В Англии!...."),
-                new MailMessage("Жриновский", AUSTIN_POWERS, "Бери пацанов, и несите меня к воде."),
-                new MailMessage(AUSTIN_POWERS, "Пацаны", "Го, потаскаем Вольфовича как Клеопатру"),
-                new MailPackage("берег", "море", new Package("ВВЖ", 32)),
-                new MailMessage("NASA", AUSTIN_POWERS, "Найди в России ракетные двигатели и лунные stones"),
-                new MailPackage(AUSTIN_POWERS, "NASA", new Package("рпакетный двигатель ", 2500000)),
-                new MailPackage(AUSTIN_POWERS, "NASA", new Package("stones", 1000)),
-                new MailPackage("Китай", "КНДР", new Package("banned substance", 99)),
-                new MailPackage(AUSTIN_POWERS, "ИГИЛ (запрещенная группировка", new Package("tiny bomb", 9000)),
-                new MailMessage(AUSTIN_POWERS, "Психиатр", "Помогите"),*/
+                new MailMessage("Отправитель1","Austin Powers", "Сообщение"),
+                new MailMessage("Отправитель2","Получатель", "Сообщение"),
+                new MailPackage("Отправитель3 посылки", "Получатель посылки", new Package("Посылка", 32)),
+                new MailPackage("Отправитель4 посылки", "Получатель посылки", new Package("Дорогая посылка", 2000)),
+                new MailPackage("Отправитель5 запрещенной посылки", "Получатель запрещенной посылки", new Package("banned substance", 99)),
+                new MailPackage("Отправитель6 запрещенной посылки", "Получатель запрещенной посылки", new Package("weapons", 99))
         };
         Arrays.stream(correspondence).forEach(parcell -> {
             try {
@@ -309,6 +297,7 @@ public class Solution {
 
         @Override
         public Sendable processMail(Sendable mail) {
+            System.out.println("processMail " + mail.getFrom() + " "+mail.getTo() );
             // Здесь описан код настоящей системы отправки почты.
             return mail;
         }
